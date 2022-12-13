@@ -6,11 +6,13 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/12 17:29:59 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/13 18:53:31 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import sys
+import re
+from pprint import pprint #
 
 symbol_table = {'x', 'X', '^', '+', '-', '*', '/', '=', '.'}
 symbol_op = {'+', '-', '*', '/'}
@@ -19,65 +21,49 @@ symbol_friend = {'x', 'X'}
 class Polynome(object):
     def __init__(self, eq: str):
         self.eq = eq
+        self.ast_left = None
+        self.ast_right = None
+        self.equation = {}
         self.__parser()
+        pprint(self.ast_left)
+        print()
+        self.__dictionary(self.ast_left)
 
-    def __valid_coeff(self, eq: str, i: int) -> int:
-        decimal = 0
-        # Sign validation
-        while i < len(eq) and  (eq[i] == '-' or eq[i] == '+'):
-            i += 1
+    def __token_list(self, eq: str, op1: set, sep1: str, op2: set, sep2: str) -> list:
+        eq_op = list(filter(lambda x: x in op1, eq))
+        x = [re.split(sep1, eq), eq_op]
+        for i in range(len(x[0])):
+            x_op = list(filter(lambda x: x in op2, x[0][i]))
+            x[0][i] = (re.split(sep2, x[0][i]), x_op)
+        return (x)
 
-        # Symbol positioning
-        if i < len(eq) and eq[i] in symbol_table and eq[i] not in symbol_friend:
-            raise ValueError("Syntax Error: unexpected symbol: {:}".format(eq[i]))
+    def __valid_coeff(self, n: str) -> bool:
+        try:
+            float(n)
+            return (True)
+        except ValueError:
+            if len(n) == 0 or n[0] != 'X' or len(n) > 1 and n[1] != '^' or len(n) == 2:
+                return (False)
+            elif len(n) > 2:
+                try:
+                    int(n[2:])
+                except ValueError:
+                    return (False)
+                return (True)
+            return (True)
 
-        # Coefficient validation
-        while 0 <= i and i < len(eq) and eq[i] not in symbol_table:
-            if eq[i] == '.':
-                decimal += 1
-            if decimal > 1:
-                raise ValueError("Syntax Error: multiple dots in coefficient")
-            i += 1
-        return (i)
-
-    def __valid_x(self, eq: str, i: int) -> int:
-        pass
-
-    def __valid_eq(self, eq: str) -> bool:
-        i = 0
-        while i < len(eq):
-            i = self.valid_coeff(eq, i)
-            if i == len(eq):
-                break
-            elif eq[i] == '*':
-                if i + 1 == len(eq):
-                    raise ValueError("Syntax Error: the equation cannot end with: {:}".format(eq[i]))
-                i += 1
-                if eq[i] == 'X' and i + 1 < len(eq) and eq[i + 1] == '^':
-                    if i + 2 == len(eq):
-                        raise ValueError("Syntax Error: the equation cannot end with: {:}".format(eq[i + 1]))
-                    if eq[i + 2] not in "0123456789":
-                        raise ValueError("Syntax Error: the equation X^ cannot end with: {:}".format(eq[i + 2]))
-                    i += 2
-                    while i < len(eq) and eq[i] not in "0123456789":
-                        i += 1
-                if i < len(eq) and eq[i] in symbol_op:
-                    if i + 1 == len(eq):
-                        raise ValueError("Syntax Error: the equation cannot end with: {:}".format(eq[i]))
-                    if eq[i + 1] in symbol_table and eq[i + 1] not in symbol_friend:
-                        raise ValueError("Syntax Error: the operation cannot continue with: {:}".format(eq[i + 1]))
-                    i += 1
-                continue
-            i += 1
-            if i < len(eq) and eq[i] in symbol_op:
-                if i + 1 == len(eq):
-                    raise ValueError("Syntax Error: the equation cannot end with: {:}".format(eq[i]))
-                if eq[i + 1] in symbol_table and eq[i + 1] not in symbol_friend:
-                    raise ValueError("Syntax Error: the operation cannot continue with: {:}".format(eq[i + 1]))
-                i += 1
+    def __syntax_structure(self, eq: str):
+        for term in eq[0]:
+            for coeff in term[0]:
+                if coeff == '':
+                    raise ValueError("Synytax Error: Empty token next to symbol")
+                elif not self.__valid_coeff(coeff):
+                    raise ValueError("Synytax Error: Invalid token: {:}".format(coeff))
 
     def __parser(self):
         self.eq = self.eq.replace(" ", "").replace("x", "X")
+        if self.eq == '':
+            raise ValueError("Error: Empty equation")
 
         # Not any invalid characters
         equal = 0
@@ -91,13 +77,72 @@ class Polynome(object):
         if equal != 1:
             raise ValueError("Syntax Error: Equation needs ONE equal symbol")
 
+        # Token list
         eq1, eq2 = self.eq.split("=")
+        eq1 = self.__token_list(eq1, { '+', '-' }, '\+|\-', { '*', '/' }, '\*|\/')
+        eq2 = self.__token_list(eq2, { '+', '-' }, '\+|\-', { '*', '/' }, '\*|\/')
+
+        # Verify syntax structure
+        self.__syntax_structure(eq1)
+        self.__syntax_structure(eq2)
+
+        self.ast_left = eq1
+        self.ast_right = eq2
+
+    def __reduce_term(self, term: tuple) -> tuple:
+        coeff = 1
+        degree = 0
+
+        # Initialize coeff or degree
+        if 'X' in term[0][0]:
+            degree = int(term[0][0][2:])
+        else:
+            coeff = float(term[0][0])
+
+        # Calculate coeff and degree
+        i = 1
+        for op in term[1]:
+            if len(term[0]) <= i:
+                break
+            if op == '*':
+                if 'X' in term[0][i]:
+                    degree += int(term[0][i][2:])
+                else:
+                    coeff *= float(term[0][i])
+            elif op == '/':
+                if 'X' in term[0][i]:
+                    degree -= int(term[0][i][2:])
+                else:
+                    coeff /= float(term[0][i])
+            i += 1
+        return (degree, coeff)
+
+    def __dictionary(self, ast: list) -> dict:
+        new = {}
+
+        # Reduce terms
+        for t in range(len(ast[0])):
+            ast[0][t] = self.__reduce_term(ast[0][t])
 
 
-
-
-        print(eq1)
-        print(eq2)
+        # Reduce equation
+        new[ast[0][0][0]] = ast[0][0][1]
+        i = 1
+        for op in ast[1]:
+            if op == '+':
+                if ast[0][i][0] in new:
+                    new[ast[0][i][0]] += ast[0][i][1]
+                else:
+                    new[ast[0][i][0]] = ast[0][i][1]
+            elif op == '-':
+                if ast[0][i][0] in new:
+                    new[ast[0][i][0]] -= ast[0][i][1]
+                else:
+                    new[ast[0][i][0]] = -ast[0][i][1]
+            i += 1
+        pprint(ast)
+        #{ x^n : coeff, ... }
+        pprint(new)
 
 if '__main__' == __name__:
     if len(sys.argv) > 2 or len(sys.argv) == 1:
@@ -105,4 +150,3 @@ if '__main__' == __name__:
         exit()
     eq = sys.argv[1]
     poly = Polynome(eq)
-    print(poly.eq)
