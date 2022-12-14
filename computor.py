@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/14 16:01:40 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/14 18:09:06 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ from pprint import pprint
 symbol_table = {'x', 'X', '^', '+', '-', '*', '/', '=', '.'}
 symbol_op = {'+', '-', '*', '/'}
 symbol_friend = {'x', 'X'}
+symbol_exp = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
 class Polynome(object):
     def __init__(self, eq: str):
@@ -31,6 +32,109 @@ class Polynome(object):
         self.reduced_right = self.__dictionary(self.ast_right)
         self.reduced = None
         self.__reduce_d()
+        self.degree = 0
+        if len(self.reduced) != 0:
+            self.degree = max(self.reduced)
+        self.print_info()
+
+    def __print_exponent(self, exponent: int):
+        xp = "⁾"
+        if exponent < 0:
+            xp += "⁻"
+            exponent *= -1
+        while exponent > 0:
+            xp += symbol_exp[int(abs(exponent % 10))]
+            exponent //= 10
+        xp += "⁽"
+        print(xp[::-1], end="")
+
+    def __quadratic(self, a: int or float, b: int or float, c: int or float) -> tuple:
+        print("Steps:")
+        print("x = (  -b ± sqrt(b⁽²⁾ - 4(a)(c))  ) / 2(a)".format(-b, b, a, c, a))
+        print("x = (  -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:}))  ) / 2({:})".format(-b, b, a, c, a))
+        b2 = b ** 2
+        ac4 = 4 * a * c
+        a2 = 2 * a
+        print("x = (  -({:}) ± sqrt(({:}) - ({:}))  ) / {:}".format(-b, b2, ac4, a2))
+        print("x = (  -({:}) ± sqrt({:})  ) / {:}".format(-b, b2 - ac4, a2))
+        sq = (b2 - ac4)**(1/2)
+        print("x = (  -({:}) ± {:}  ) / {:}".format(-b, sq, a2))
+        print("x1 = (  -({:}) - {:}  ) / {:}".format(-b, sq, a2))
+        print("x2 = (  -({:}) + {:}  ) / {:}".format(-b, sq, a2))
+        print("x1 = {:} / {:}".format((-b) - sq, a2))
+        print("x2 = {:} / {:}".format((-b) + sq, a2))
+        print("Solutions:")
+        print("x1 = {:}".format(((-b) - sq) / a2))
+        print("x2 = {:}".format(((-b) + sq) / a2))
+        return (((-b) - sq) / a2, ((-b) + sq) / a2)
+
+
+    def __print_reduced(self):
+        first = True
+        for key in sorted(self.reduced):
+            # Print operation
+            # print(self.reduced[key], key)
+            if not first and self.reduced[key] >= 0:
+                print(" + ", end="");
+            elif not first and self.reduced[key] < 0:
+                print(" - ", end="")
+
+            # Print int or float
+            if first and self.reduced[key] < 0:
+                print("-", end="")
+            if self.reduced[key].is_integer():
+                if abs(self.reduced[key]) != 1 or key == 0:
+                    print(abs(int(self.reduced[key])), end="")
+                    if key != 0:
+                        print(" * ", end="")
+            else:
+                print(abs(self.reduced[key]), end="")
+                if key != 0:
+                    print(" * ", end="")
+            if key != 0:
+                print("x", end="")
+            if key != 0 and key != 1:
+                self.__print_exponent(key)
+            first = False
+        print(" = 0")
+
+    def print_info(self):
+        print("Reduced form:", end=" ")
+        if len(self.reduced) != 0:
+            self.__print_reduced()
+        else:
+            print("0 = 0")
+
+        # Degree
+        print("Polynomial degree:", self.degree)
+
+        # Solve roots
+        if self.degree > 2:
+            print("The polynomial degree is strictly greater than 2, I can't solve.")
+        else:
+            # a -> n * x^2
+            # b -> n * x
+            # c -> n
+            a, b, c = 0, 0, 0
+            if 2 in self.reduced:
+                a = self.reduced[2]
+            if 1 in self.reduced:
+                b = self.reduced[1]
+            if 0 in self.reduced:
+                c = self.reduced[0]
+            if a != 0:
+                self.__quadratic(a, b, c)
+            elif b != 0:
+                print("Steps:")
+                print("x = - {:} / {:}".format(c, b))
+                if b == 0:
+                    print("Error: Division by zero")
+                else:
+                    print("x = {:}".format(-c / b))
+            elif len(self.reduced) == 0:
+                print("No roots to solve")
+            else:
+                print("Error: Mathematical inconcistency")
 
     def print_ast(self):
         print('\nAST: ', end="")
@@ -151,6 +255,15 @@ class Polynome(object):
         return (degree, coeff)
 
     def __dictionary(self, ast: list) -> dict:
+        """
+        return dictionary with { degree : coefficient }
+        {
+          X^degree: coeff,
+          0: coeff,
+          ...,
+          n: coeff,
+        }
+        """
         new = {}
 
         # Reduce terms
@@ -172,8 +285,6 @@ class Polynome(object):
                 else:
                     new[ast[0][i][0]] = -ast[0][i][1]
             i += 1
-        #pprint(ast)
-        #{ x^n : coeff, ... }
         return (new)
 
     def __reduce_d(self):
@@ -183,6 +294,7 @@ class Polynome(object):
                 self.reduced[key] -= self.reduced_right[key]
             else:
                 self.reduced[key] = self.reduced_right[key]
+        self.reduced = { key: val for key, val in self.reduced.items() if val != 0}
 
 if '__main__' == __name__:
     if len(sys.argv) > 2 or len(sys.argv) == 1:
