@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/14 18:09:06 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/16 18:06:21 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,41 +39,55 @@ class Polynome(object):
 
     def __print_exponent(self, exponent: int):
         xp = "⁾"
+        sign = ""
         if exponent < 0:
-            xp += "⁻"
+            sign = "⁻"
             exponent *= -1
         while exponent > 0:
             xp += symbol_exp[int(abs(exponent % 10))]
             exponent //= 10
+        xp += sign
         xp += "⁽"
         print(xp[::-1], end="")
 
     def __quadratic(self, a: int or float, b: int or float, c: int or float) -> tuple:
         print("Steps:")
-        print("x = (  -b ± sqrt(b⁽²⁾ - 4(a)(c))  ) / 2(a)".format(-b, b, a, c, a))
-        print("x = (  -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:}))  ) / 2({:})".format(-b, b, a, c, a))
+        print("x = ( -b ± sqrt(b⁽²⁾ - 4(a)(c)) ) / 2(a)".format(-b, b, a, c, a))
+        print("x = ( -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:})) ) / 2({:})".format(-b, b, a, c, a))
         b2 = b ** 2
         ac4 = 4 * a * c
         a2 = 2 * a
-        print("x = (  -({:}) ± sqrt(({:}) - ({:}))  ) / {:}".format(-b, b2, ac4, a2))
-        print("x = (  -({:}) ± sqrt({:})  ) / {:}".format(-b, b2 - ac4, a2))
-        sq = (b2 - ac4)**(1/2)
-        print("x = (  -({:}) ± {:}  ) / {:}".format(-b, sq, a2))
-        print("x1 = (  -({:}) - {:}  ) / {:}".format(-b, sq, a2))
-        print("x2 = (  -({:}) + {:}  ) / {:}".format(-b, sq, a2))
+        print("x = ( -({:}) ± sqrt(({:}) - ({:})) ) / {:}".format(-b, b2, ac4, a2))
+        print("x = ( -({:}) ± sqrt({:}) ) / {:}".format(-b, b2 - ac4, a2))
+        sq = round((b2 - ac4)**(1/2), 4)
+        print("x = ( -({:}) ± {:} ) / {:}".format(-b, sq, a2))
+        print("x1 = ( -({:}) - {:} ) / {:}".format(-b, sq, a2))
+        print("x2 = ( -({:}) + {:} ) / {:}".format(-b, sq, a2))
         print("x1 = {:} / {:}".format((-b) - sq, a2))
         print("x2 = {:} / {:}".format((-b) + sq, a2))
         print("Solutions:")
-        print("x1 = {:}".format(((-b) - sq) / a2))
-        print("x2 = {:}".format(((-b) + sq) / a2))
-        return (((-b) - sq) / a2, ((-b) + sq) / a2)
+        x1 = round(((-b) - sq) / a2, 4)
+        xa1, xb1 = x1.as_integer_ratio()
+        if (-1000 < xa1 and xa1 < 1000) and \
+           (-1000 < xb1 and xb1 < 1000):
+            print("x1 = {:} or {:}/{:}".format(x1, xa1, xb1))
+        else:
+            print("x1 = {:}".format(x1))
+        x2 = round(((-b) + sq) / a2, 4)
+        xa2, xb2 = x2.as_integer_ratio()
+        if (-1000 < xa2 and xa2 < 1000) and \
+           (-1000 < xb2 and xb2 < 1000):
+            print("x2 = {:} or {:}/{:}".format(x2, xa2, xb2))
+        else:
+            print("x2 = {:}".format(x2))
+        return (x1, x2)
 
 
     def __print_reduced(self):
         first = True
         for key in sorted(self.reduced):
             # Print operation
-            # print(self.reduced[key], key)
+            # print("{",self.reduced[key], ",", key, "}")
             if not first and self.reduced[key] >= 0:
                 print(" + ", end="");
             elif not first and self.reduced[key] < 0:
@@ -82,7 +96,7 @@ class Polynome(object):
             # Print int or float
             if first and self.reduced[key] < 0:
                 print("-", end="")
-            if self.reduced[key].is_integer():
+            if isinstance(self.reduced[key], int) or self.reduced[key].is_integer():
                 if abs(self.reduced[key]) != 1 or key == 0:
                     print(abs(int(self.reduced[key])), end="")
                     if key != 0:
@@ -111,10 +125,12 @@ class Polynome(object):
         # Solve roots
         if self.degree > 2:
             print("The polynomial degree is strictly greater than 2, I can't solve.")
+        elif len(self.reduced) != 0 and min(self.reduced) < 0:
+            print("X^exponent is lower than 0, I can't solve.")
         else:
-            # a -> n * x^2
-            # b -> n * x
-            # c -> n
+            # a -> a * x^2
+            # b -> b * x
+            # c -> c
             a, b, c = 0, 0, 0
             if 2 in self.reduced:
                 a = self.reduced[2]
@@ -126,25 +142,33 @@ class Polynome(object):
                 self.__quadratic(a, b, c)
             elif b != 0:
                 print("Steps:")
-                print("x = - {:} / {:}".format(c, b))
-                if b == 0:
-                    print("Error: Division by zero")
+                print("x = {:} / {:}".format(-c, b))
+                x = round(-c / b, 4)
+                if abs(x) == 0:
+                    print("X = 0")
                 else:
-                    print("x = {:}".format(-c / b))
+                    a, b = x.as_integer_ratio()
+                    if (-1000 < a and a < 1000) and \
+                       (-1000 < b and b < 1000):
+                        print("x = {:} or {:}/{:}".format(x, a, b))
+                    else:
+                        print("x = {:}".format(x))
             elif len(self.reduced) == 0:
                 print("No roots to solve")
             else:
                 print("Error: Mathematical inconcistency")
 
     def print_ast(self):
-        print('\nAST: ', end="")
+        print('\nAST (lf): ', end="")
         pprint(self.ast[0], width=42)
-        print('\nAST: ', end="")
+        print('\nAST (rg): ', end="")
         pprint(self.ast[1], width=42)
 
     def print_dictionary(self):
         print('\nDictionary: ', end="")
         pprint(self.reduced)
+
+    # Syntax Analysis
 
     def __token_list(self, eq: str, op1: set, sep1: str, op2: set, sep2: str) -> list:
         eq_op = list(filter(lambda x: x in op1, eq))
@@ -181,7 +205,7 @@ class Polynome(object):
                     raise ValueError("Synytax Error: Invalid token: {:}".format(coeff))
 
     def __parser(self):
-        self.eq = self.eq.replace(" ", "").replace("x", "X")
+        self.eq = self.eq.replace(" ", "").replace("\n", "").replace("\t", "").replace("x", "X")
         if self.eq == '':
             raise ValueError("Error: Empty equation")
 
@@ -199,9 +223,9 @@ class Polynome(object):
 
         # Except negative numbers
         self.eq = self.eq.replace("*-", "*m").replace("/-", "/m").replace("=-", "=m")
-        self.eq = self.eq.replace("mX", "m1*X")
         if self.eq[0] == '-':
             self.eq = 'm' + self.eq[1:]
+        self.eq = self.eq.replace("mX", "m1*X")
 
         # Token list
         eq1, eq2 = self.eq.split("=")
@@ -297,10 +321,38 @@ class Polynome(object):
         self.reduced = { key: val for key, val in self.reduced.items() if val != 0}
 
 if '__main__' == __name__:
-    if len(sys.argv) > 2 or len(sys.argv) == 1:
-        print("Usage: python3 computor.py '<polynomial equaion>'")
+    if len(sys.argv) > 3 or len(sys.argv) == 1 or (len(sys.argv) > 2 and sys.argv[2] != "-v"):
+        print("Usage: python3 computor.py '<polynomial equaion>' [-v]")
+        print()
+        print("Rules:")
+        print("       - Lexic:")
+        print("                • Equal          : =")
+        print("                • Multiplication : *")
+        print("                • Division       : /")
+        print("                • Addition       : +")
+        print("                • Substraction   : -")
+        print("                • Variable Exp.  : ^")
+        print("                • Variable       : x / X")
+        print("                • Coefficient    : n (float / int)")
+        print("       - Syntax:")
+        print("                • ONE equal sign")
+        print("                • Operations are binary")
+        print("                • Spaces are irrelevant")
+        print("                • Exponents are only for variables")
+        print("       - Semantic:")
+        print("                • Polynomial degree in range [0, 2]")
+        print("                • Mathematically consistent")
+        print("                • No divisions by zero")
+        print()
+        print("Example:")
+        print("       python3 computor.py '8 * X^0 - 6 * X^1 + 0 * X^2 - 5.6 * X^2 = 3 * X^0'")
+        print()
         exit()
-    eq = sys.argv[1]
-    poly = Polynome(eq)
-    poly.print_ast()
-    poly.print_dictionary()
+    try:
+        eq = sys.argv[1]
+        poly = Polynome(eq)
+        if len(sys.argv) > 2 and sys.argv[2] == '-v':
+            poly.print_ast()
+            poly.print_dictionary()
+    except ValueError as msg:
+        print(msg)
