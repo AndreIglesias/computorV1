@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/16 18:49:24 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/16 20:11:59 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,44 +50,67 @@ class Polynome(object):
         xp += "⁽"
         print(xp[::-1], end="")
 
+    def __complex_round(self, x: float or complex) -> float or complex:
+        if isinstance(x, complex):
+            return x # complex(round(x.real, 4),round(x.imag, 4))
+        return x # (round(x, 4))
+
+    def __format_roots(self, x: float or complex) -> str:
+        if isinstance(x, complex):
+            a, b = x.real.as_integer_ratio()
+            ai, bi = x.imag.as_integer_ratio()
+            if b != 1 and -1000 < a and a < 1000 and -1000 < b and b < 1000:
+                sab = "{:}/{:}".format(a, b)
+            else:
+                sab = "{:}".format(x.real)
+
+            if bi != 1 and -1000 < ai and ai < 1000 and -1000 < bi and bi < 1000:
+                sabi = "{:}/{:}j".format(ai, bi)
+            else:
+                sabi = "{:}j".format(x.imag)
+            if x.imag < 0:
+                return (sab + sabi)
+            return (sab + "+" + sabi)
+
+        a, b = x.as_integer_ratio()
+        if b != 1 and -1000 < a and a < 1000 and -1000 < b and b < 1000:
+            sab = "{:}/{:}".format(a, b)
+        else:
+            sab = ""
+        return (str(x) + " or " + sab)
+
     def __quadratic(self, a: int or float, b: int or float, c: int or float) -> tuple:
         print("Steps:")
         print()
-        a, b, c = round(a, 4), round(b, 4), round(c, 4)
+        a, b, c = self.__complex_round(a), self.__complex_round(b), self.__complex_round(c)
         print("x = ( -b ± sqrt(b⁽²⁾ - 4(a)(c)) ) / 2(a)")
         print()
         print("a =", a)
         print("b =", b)
         print("c =", c)
         print()
-        print("x = ( -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:})) ) / 2({:})".format(-b, b, a, c, a))
-        b2 = round(b ** 2, 4)
-        ac4 = round(4 * a * c, 4)
-        a2 = round(2 * a, 4)
-        print("x = ( -({:}) ± sqrt(({:}) - ({:})) ) / {:}".format(-b, b2, ac4, a2))
-        print("x = ( -({:}) ± sqrt({:}) ) / {:}".format(-b, b2 - ac4, a2))
-        sq = round((b2 - ac4)**(1/2), 4)
-        print("x = ( -({:}) ± {:} ) / {:}".format(-b, sq, a2))
-        print("x1 = ( -({:}) - {:} ) / {:}".format(-b, sq, a2))
-        print("x2 = ( -({:}) + {:} ) / {:}".format(-b, sq, a2))
+        print("x = ( -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:})) ) / 2({:})".format(b, b, a, c, a))
+        b2 = self.__complex_round(b ** 2)
+        ac4 = self.__complex_round(4 * a * c)
+        a2 = self.__complex_round(2 * a)
+        print("x = ( -({:}) ± sqrt(({:}) - ({:})) ) / {:}".format(b, b2, ac4, a2))
+        print("x = ( -({:}) ± sqrt({:}) ) / {:}".format(b, b2 - ac4, a2))
+        sq = self.__complex_round((b2 - ac4)**(1/2))
+        print("x = ( -({:}) ± {:} ) / {:}".format(b, sq, a2))
+        print("x1 = ( -({:}) - {:} ) / {:}".format(b, sq, a2))
+        print("x2 = ( -({:}) + {:} ) / {:}".format(b, sq, a2))
         print("x1 = {:} / {:}".format((-b) - sq, a2))
         print("x2 = {:} / {:}".format((-b) + sq, a2))
         print()
         print("Solutions:")
-        x1 = round(((-b) - sq) / a2, 4)
-        xa1, xb1 = x1.as_integer_ratio()
-        if xb1 != 1 and (-1000 < xa1 and xa1 < 1000) and \
-           (-1000 < xb1 and xb1 < 1000):
-            print("x1 = {:} or {:}/{:}".format(x1, xa1, xb1))
-        else:
-            print("x1 = {:}".format(x1))
-        x2 = round(((-b) + sq) / a2, 4)
-        xa2, xb2 = x2.as_integer_ratio()
-        if xb2 != 1 and (-1000 < xa2 and xa2 < 1000) and \
-           (-1000 < xb2 and xb2 < 1000):
-            print("x2 = {:} or {:}/{:}".format(x2, xa2, xb2))
-        else:
-            print("x2 = {:}".format(x2))
+        x1 = self.__complex_round(((-b) - sq) / a2)
+        if abs(x1) == 0:
+            x1 = 0
+        print(self.__format_roots(x1))
+        x2 = self.__complex_round(((-b) + sq) / a2)
+        if abs(x2) == 0:
+            x2 = 0
+        print(self.__format_roots(x2))
         return (x1, x2)
 
 
@@ -110,7 +133,7 @@ class Polynome(object):
                     if key != 0:
                         print(" * ", end="")
             else:
-                print(round(abs(self.reduced[key]), 4), end="")
+                print(self.__complex_round(abs(self.reduced[key]), 4), end="")
                 if key != 0:
                     print(" * ", end="")
             if key != 0:
@@ -154,7 +177,7 @@ class Polynome(object):
                     print("x = {:} / {:}".format(-c, b))
                 else:
                     print("Solution:")
-                x = round(-c / b, 4)
+                x = self.__complex_round(-c / b)
                 if abs(x) == 0:
                     print("X = 0")
                 else:

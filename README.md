@@ -9,6 +9,9 @@ A program that solves a polynomial second or lower degree equation.
   - [X] Replace minus sign at the begining of equation by `m`
   - [X] After parsing, replacing m by a `-`
   - [X] Integrate it with the reducing dictionary
-- [ ] Semantic analysis
-- [ ] Find roots of the polynomial equation
-- [ ] Present output to user
+- [X] Semantic analysis
+- [X] Find roots of the polynomial equation
+- [X] Present output to user
+- [X] Convenient fraction representation
+- [X] Complex number rounding
+- [X] Better Usage descripton
