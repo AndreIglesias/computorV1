@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/16 18:06:21 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/16 18:24:44 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,14 +68,14 @@ class Polynome(object):
         print("Solutions:")
         x1 = round(((-b) - sq) / a2, 4)
         xa1, xb1 = x1.as_integer_ratio()
-        if (-1000 < xa1 and xa1 < 1000) and \
+        if xb1 != 1 and (-1000 < xa1 and xa1 < 1000) and \
            (-1000 < xb1 and xb1 < 1000):
             print("x1 = {:} or {:}/{:}".format(x1, xa1, xb1))
         else:
             print("x1 = {:}".format(x1))
         x2 = round(((-b) + sq) / a2, 4)
         xa2, xb2 = x2.as_integer_ratio()
-        if (-1000 < xa2 and xa2 < 1000) and \
+        if xb2 != 1 and (-1000 < xa2 and xa2 < 1000) and \
            (-1000 < xb2 and xb2 < 1000):
             print("x2 = {:} or {:}/{:}".format(x2, xa2, xb2))
         else:
@@ -148,7 +148,7 @@ class Polynome(object):
                     print("X = 0")
                 else:
                     a, b = x.as_integer_ratio()
-                    if (-1000 < a and a < 1000) and \
+                    if b != 1 and (-1000 < a and a < 1000) and \
                        (-1000 < b and b < 1000):
                         print("x = {:} or {:}/{:}".format(x, a, b))
                     else:
@@ -165,6 +165,10 @@ class Polynome(object):
         pprint(self.ast[1], width=42)
 
     def print_dictionary(self):
+        print('\nDict (lf): ', end="")
+        pprint(self.reduced_left, width=42)
+        print('\nDict (rg): ', end="")
+        pprint(self.reduced_right, width=42)
         print('\nDictionary: ', end="")
         pprint(self.reduced)
 
@@ -317,7 +321,7 @@ class Polynome(object):
             if key in self.reduced:
                 self.reduced[key] -= self.reduced_right[key]
             else:
-                self.reduced[key] = self.reduced_right[key]
+                self.reduced[key] = -self.reduced_right[key]
         self.reduced = { key: val for key, val in self.reduced.items() if val != 0}
 
 if '__main__' == __name__:
