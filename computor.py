@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2022/12/16 18:24:44 by ciglesia         ###   ########.fr        #
+#    Updated: 2022/12/16 18:49:24 by ciglesia         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,11 +52,18 @@ class Polynome(object):
 
     def __quadratic(self, a: int or float, b: int or float, c: int or float) -> tuple:
         print("Steps:")
-        print("x = ( -b ± sqrt(b⁽²⁾ - 4(a)(c)) ) / 2(a)".format(-b, b, a, c, a))
+        print()
+        a, b, c = round(a, 4), round(b, 4), round(c, 4)
+        print("x = ( -b ± sqrt(b⁽²⁾ - 4(a)(c)) ) / 2(a)")
+        print()
+        print("a =", a)
+        print("b =", b)
+        print("c =", c)
+        print()
         print("x = ( -({:}) ± sqrt({:}⁽²⁾ - 4({:})({:})) ) / 2({:})".format(-b, b, a, c, a))
-        b2 = b ** 2
-        ac4 = 4 * a * c
-        a2 = 2 * a
+        b2 = round(b ** 2, 4)
+        ac4 = round(4 * a * c, 4)
+        a2 = round(2 * a, 4)
         print("x = ( -({:}) ± sqrt(({:}) - ({:})) ) / {:}".format(-b, b2, ac4, a2))
         print("x = ( -({:}) ± sqrt({:}) ) / {:}".format(-b, b2 - ac4, a2))
         sq = round((b2 - ac4)**(1/2), 4)
@@ -65,6 +72,7 @@ class Polynome(object):
         print("x2 = ( -({:}) + {:} ) / {:}".format(-b, sq, a2))
         print("x1 = {:} / {:}".format((-b) - sq, a2))
         print("x2 = {:} / {:}".format((-b) + sq, a2))
+        print()
         print("Solutions:")
         x1 = round(((-b) - sq) / a2, 4)
         xa1, xb1 = x1.as_integer_ratio()
@@ -102,7 +110,7 @@ class Polynome(object):
                     if key != 0:
                         print(" * ", end="")
             else:
-                print(abs(self.reduced[key]), end="")
+                print(round(abs(self.reduced[key]), 4), end="")
                 if key != 0:
                     print(" * ", end="")
             if key != 0:
@@ -141,8 +149,11 @@ class Polynome(object):
             if a != 0:
                 self.__quadratic(a, b, c)
             elif b != 0:
-                print("Steps:")
-                print("x = {:} / {:}".format(-c, b))
+                if b != 1:
+                    print("Steps:")
+                    print("x = {:} / {:}".format(-c, b))
+                else:
+                    print("Solution:")
                 x = round(-c / b, 4)
                 if abs(x) == 0:
                     print("X = 0")
@@ -328,7 +339,9 @@ if '__main__' == __name__:
     if len(sys.argv) > 3 or len(sys.argv) == 1 or (len(sys.argv) > 2 and sys.argv[2] != "-v"):
         print("Usage: python3 computor.py '<polynomial equaion>' [-v]")
         print()
-        print("Rules:")
+        print("-v    : verbose (displays AST and Dictionaries)")
+        print()
+        print("Rules :")
         print("       - Lexic:")
         print("                • Equal          : =")
         print("                • Multiplication : *")
@@ -360,3 +373,5 @@ if '__main__' == __name__:
             poly.print_dictionary()
     except ValueError as msg:
         print(msg)
+    except ZeroDivisionError as msg:
+        print("Error:", msg)
