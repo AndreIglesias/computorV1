@@ -57,7 +57,6 @@ class CPMath(object):
             return (sab + "+" + sabi)
 
         a, b = x.as_integer_ratio()
-        print("dbg:",a, b,x)
         if b != 1 and -1000 < a and a < 1000 and -1000 < b and b < 1000:
             sab = "{:}/{:}".format(a, b)
         else:
@@ -81,7 +80,14 @@ class CPMath(object):
         a2 = 2 * a
         print("x = ( -({:}) ± sqrt(({:}) - ({:})) ) / {:}".format(b, b2, ac4, a2))
         print("x = ( -({:}) ± sqrt({:}) ) / {:}".format(b, b2 - ac4, a2))
-        sq = (b2 - ac4)**(1/2)
+        discriminant = b2 - ac4
+        if discriminant > 0:
+            print("\nThe discriminant is positive and has 2 real and distinct roots\n")
+        elif discriminant == 0:
+            print("\nThe discriminant is zero and has 2 real and equal roots\n")
+        elif discriminant < 0:
+            print("\nThe discriminant is negative and has 2 complex roots\n")
+        sq = (discriminant)**(1/2)
         print("x = ( -({:}) ± {:} ) / {:}".format(b, sq, a2))
         print("x1 = ( -({:}) - {:} ) / {:}".format(b, sq, a2))
         print("x2 = ( -({:}) + {:} ) / {:}".format(b, sq, a2))
