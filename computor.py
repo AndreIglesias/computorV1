@@ -6,7 +6,7 @@
 #    By: ciglesia <ciglesia@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/12/12 15:45:24 by ciglesia          #+#    #+#              #
-#    Updated: 2023/01/09 16:14:32 by ciglesia         ###   ########.fr        #
+#    Updated: 2023/01/12 16:52:42 by user             ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -104,7 +104,7 @@ class Polynome(object):
                 else:
                     print("x = " + cpm.format_roots(x))
             elif len(self.reduced) == 0:
-                print("No roots to solve")
+                print("No roots to solve, any real number is a solution")
             else:
                 print("Error: Mathematical inconcistency")
 

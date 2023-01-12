@@ -84,7 +84,7 @@ class CPMath(object):
         if discriminant > 0:
             print("\nThe discriminant is positive and has 2 real and distinct roots\n")
         elif discriminant == 0:
-            print("\nThe discriminant is zero and has 2 real and equal roots\n")
+            print("\nThe discriminant is zero and has 2 real and equal roots (or 1 real root)\n")
         elif discriminant < 0:
             print("\nThe discriminant is negative and has 2 complex roots\n")
         sq = (discriminant)**(1/2)
@@ -95,15 +95,15 @@ class CPMath(object):
         print("x2 = {:} / {:}".format((-b) + sq, a2))
         print()
         print("Solutions:")
+        print("x1 = x2")
         x1 = ((-b) - sq) / a2
         if abs(x1) == 0:
             x1 = 0
-        print(self.format_roots(x1))
+        print("x1 =", self.format_roots(x1))
         x2 = ((-b) + sq) / a2
         if abs(x2) == 0:
             x2 = 0
-        print(self.format_roots(x2))
-        return (x1, x2)
+        print("x2 =", self.format_roots(x2))
 
     def reduce_term(self, term: tuple) -> tuple:
         coeff = 1
