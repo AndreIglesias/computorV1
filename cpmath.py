@@ -120,7 +120,8 @@ class CPMath(object):
         print("x2 = {:} / {:}".format((-b) + sq, a2))
         print()
         print("Solutions:")
-        print("x1 = x2")
+        if discriminant == 0:
+            print("X1 = X2")
         x1 = ((-b) - sq) / a2
         if abs(x1) == 0:
             x1 = 0
