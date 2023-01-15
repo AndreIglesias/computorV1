@@ -39,10 +39,35 @@ class CPMath(object):
 
     # Computing Functions
 
+    def gcd(self, x, y):
+        while(y):
+            x, y = y, x % y
+        return abs(x)
+
+    def float_fraction(self, s):
+        be_deci, af_deci = "", ""
+        x, y = True, False
+        for i in range(len(s)):
+            if (s[i] == '.'):
+                x, y = False, True
+                continue
+            if (x):
+                be_deci += s[i]
+            if (y):
+                af_deci += s[i]
+        num_be_deci = int(be_deci)
+        num_af_deci = 0
+        if len(af_deci) != 0:
+            num_af_deci = int(af_deci)
+        numerator = (num_be_deci * pow(10, len(af_deci)) + num_af_deci)
+        denominator = pow(10, len(af_deci))
+        gd = self.gcd(numerator, denominator)
+        return (numerator // gd, denominator // gd)
+
     def format_roots(self, x: float or complex) -> str:
         if isinstance(x, complex):
-            a, b = x.real.as_integer_ratio()
-            ai, bi = x.imag.as_integer_ratio()
+            a, b = self.float_fraction(str(x.real))
+            ai, bi = self.float_fraction(str(x.imag))
             if b != 1 and -1000 < a and a < 1000 and -1000 < b and b < 1000:
                 sab = "{:}/{:}".format(a, b)
             else:
@@ -56,7 +81,7 @@ class CPMath(object):
                 return (sab + sabi)
             return (sab + "+" + sabi)
 
-        a, b = x.as_integer_ratio()
+        a, b = self.float_fraction(str(x))
         if b != 1 and -1000 < a and a < 1000 and -1000 < b and b < 1000:
             sab = "{:}/{:}".format(a, b)
         else:
